@@ -8,7 +8,8 @@ st.title("🏋️‍♂️ Fitness Tracker")
 DATA_DIR = "data"
 WORKOUT_LOG = os.path.join(DATA_DIR, "workout_data.csv")
 NUTRITION_LOG = os.path.join(DATA_DIR, "nutrition_log.csv")
-
+if os.path.exists(DATA_DIR) and not os.path.isdir(DATA_DIR):
+    os.remove(DATA_DIR)
 os.makedirs(DATA_DIR, exist_ok=True)
 
 def load_csv(path, columns):
