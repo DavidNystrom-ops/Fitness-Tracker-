@@ -107,6 +107,16 @@ with tab2:
        workoutlog_edit.to_csv(WORKOUT_LOG, index=False)
        st.success("WORKOUT LOG saved.")
         
+    # Max Weight PRs
+    st.subheader("🏆 Max Weight PRs")
+    if not workout_df.empty:
+        pr_df = workout_df.groupby("Exercise")["Weight"].max().reset_index()
+        pr_df = pr_df.sort_values("Weight", ascending=False)
+        st.dataframe(pr_df, use_container_width=True)
+    else:
+        st.info("No workout data available to calculate PRs.")
+
+        
 with tab3:
     st.header("💧 Water Intake")
     ounces = st.number_input("Ounces", min_value=0)
