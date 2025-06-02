@@ -76,7 +76,9 @@ with tab1:
 
 with tab2:
     st.header("🏋️ Log Workout")
-    exercise = st.text_input("Exercise")
+    preset_exercises = ["Chest Press", "Goblet Squat", "Lat Pulldown", "Plank Hold", "Overhead Press", "Deadlift", "Barbell Row", "Bicep Curl"]
+    exercise = st.selectbox("Exercise", preset_exercises)
+
     sets = st.number_input("Sets", min_value=1, value=1)
     reps = st.number_input("Reps", min_value=1, value=1)
     weight = st.number_input("Weight (lbs)", min_value=0.0, value=0.0)
