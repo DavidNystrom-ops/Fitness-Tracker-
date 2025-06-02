@@ -6,6 +6,30 @@ from datetime import datetime
 DATA_DIR = "data"
 os.makedirs(DATA_DIR, exist_ok=True)
 
+NUTRITION_LOG = os.path.join(DATA_DIR, "nutrition_data.csv")
+
+# Load nutrition data
+def load_csv(path, columns):
+    if os.path.exists(path):
+        return pd.read_csv(path, parse_dates=["Date"])
+    return pd.DataFrame(columns=columns)
+
+nutrition_df = load_csv(NUTRITION_LOG, ["Date", "Meal", "Protein", "Carbs", "Fats", "Calories"])
+
+# Calculate totals
+totals = nutrition_df[["Protein", "Carbs", "Fats", "Calories"]].sum()
+
+# Display goals and totals
+st.subheader("🥗 Daily Nutrition Goals")
+col1, col2 = st.columns(2)
+
+with col1:
+    st.metric("Calories", f"{totals['Calories']:.0f} / 1424 kcal")
+    st.metric("Protein", f"{totals['Protein']:.0f} / 142 g")
+with col2:
+    st.metric("Carbs", f"{totals['Carbs']:.0f} / 107 g")
+    st.metric("Fats", f"{totals['Fats']:.0f} / 47 g")
+
 # File paths
 NUTRITION_LOG = os.path.join(DATA_DIR, "nutrition_log.csv")
 WORKOUT_LOG = os.path.join(DATA_DIR, "workout_log.csv")
