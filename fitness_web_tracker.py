@@ -106,6 +106,7 @@ with tab2:
     if st.button("Save workout Log"):
         workout_edit.to_csv(workout_LOG, index=False)
         st.success("workout log saved.")
+        
 with tab3:
     st.header("💧 Water Intake")
     ounces = st.number_input("Ounces", min_value=0)
