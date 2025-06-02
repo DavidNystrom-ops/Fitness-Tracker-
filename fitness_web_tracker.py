@@ -101,11 +101,11 @@ with tab2:
     st.dataframe(workout_df.tail(10))
 
     # Editable Log
-    st.subheader("🏋️ Edit workout log")
+    st.subheader("🏋️ Edit WORKOUT LOG")
     workoutlog_edit = st.data_editor(workout_df, num_rows="dynamic", use_container_width=True)
     if st.button("Save workout Log"):
-        workout_edit.to_csv(workout_LOG, index=False)
-        st.success("workout log saved.")
+       workoutlog_edit.to_csv(WORKOUT_LOG, index=False)
+        st.success("WORKOUT LOG saved.")
         
 with tab3:
     st.header("💧 Water Intake")
