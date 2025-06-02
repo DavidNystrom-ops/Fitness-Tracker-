@@ -1,0 +1,8 @@
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false
+
+[general]
+mainPage = "fitness_web_tracker.py"
