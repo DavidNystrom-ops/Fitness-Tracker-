@@ -1,64 +1,133 @@
 import streamlit as st
 import pandas as pd
 import os
-
-st.set_page_config(page_title="Fitness Tracker", layout="centered")
-st.title("🏋️‍♂️ Fitness Tracker")
+from datetime import datetime
 
 DATA_DIR = "data"
-WORKOUT_LOG = os.path.join(DATA_DIR, "workout_data.csv")
-NUTRITION_LOG = os.path.join(DATA_DIR, "nutrition_log.csv")
-if os.path.exists(DATA_DIR) and not os.path.isdir(DATA_DIR):
-    os.remove(DATA_DIR)
 os.makedirs(DATA_DIR, exist_ok=True)
 
+# File paths
+NUTRITION_LOG = os.path.join(DATA_DIR, "nutrition_log.csv")
+WORKOUT_LOG = os.path.join(DATA_DIR, "workout_log.csv")
+WATER_LOG = os.path.join(DATA_DIR, "water_log.csv")
+SLEEP_LOG = os.path.join(DATA_DIR, "sleep_log.csv")
+
+# Load logs
 def load_csv(path, columns):
     if os.path.exists(path):
         return pd.read_csv(path, parse_dates=["Date"])
     return pd.DataFrame(columns=columns)
 
-def save_csv(df, path):
-    df.to_csv(path, index=False)
-    
-#Save goal data
-def save_goals(protein, carbs, fats, calories):
-    df = pd.DataFrame([{
-        "Protein (g)": protein,
-        "Carbs (g)": carbs,
-        "Fats (g)": fats,
-        "Calories": calories
-    }])
-    df.to_csv(GOALS_FILE, index=False)
+# Nutrition
+nutrition_df = load_csv(NUTRITION_LOG, ["Date", "Meal", "Protein", "Carbs", "Fats", "Calories"])
+# Workout
+workout_df = load_csv(WORKOUT_LOG, ["Date", "Exercise", "Weight", "Reps", "Sets", "Volume"])
+# Water
+water_df = load_csv(WATER_LOG, ["Date", "Ounces"])
+# Sleep
+sleep_df = load_csv(SLEEP_LOG, ["Date", "Hours"])
 
-#Load goals
-def load_goals():
-    if os.path.exists(GOALS_FILE):
-        return pd.read_csv(GOALS_FILE).iloc[0]
-    return pd.Series({"Protein (g)": 0, "Carbs (g)": 0, "Fats (g)": 0, "Calories": 0})
+# Streamlit App
+st.set_page_config(page_title="Fitness Tracker", layout="centered")
+st.title("🏋️‍♂️ Fitness Tracker")
 
-#Main app
-tabs = st.tabs(["🍎 Nutrition", "🏋️‍♂️ Workout Tracker", "💧 Water", "🛌 Sleep", "📈 Progress"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["Nutrition", "Workout Tracker", "Water", "Sleep", "Progress"])
 
+with tab1:
+    st.header("🥗 Nutrition Log")
+    meal = st.text_input("Meal Description")
+    protein = st.number_input("Protein (g)", min_value=0)
+    carbs = st.number_input("Carbs (g)", min_value=0)
+    fats = st.number_input("Fats (g)", min_value=0)
+    calories = st.number_input("Calories", min_value=0)
 
-st.header("Nutrition Log")
-meal = st.text_input("Meal Description")
-protein = st.number_input("Protein (g)", 0)
-carbs = st.number_input("Carbs (g)", 0)
-fats = st.number_input("Fats (g)", 0)
-calories = st.number_input("Calories", 0)
+    if st.button("Log Meal"):
+        new_entry = {
+            "Date": datetime.now(),
+            "Meal": meal,
+            "Protein": protein,
+            "Carbs": carbs,
+            "Fats": fats,
+            "Calories": calories
+        }
+        nutrition_df = pd.concat([nutrition_df, pd.DataFrame([new_entry])], ignore_index=True)
+        nutrition_df.to_csv(NUTRITION_LOG, index=False)
+        st.success("Meal logged!")
 
-if st.button("Log Meal"):
-    date = pd.Timestamp.now()
-    new_row = pd.DataFrame([[date, meal, protein, carbs, fats, calories]],
-                           columns=["Date", "Meal", "Protein", "Carbs", "Fats", "Calories"])
-    nutrition_df = load_csv(NUTRITION_LOG, new_row.columns.tolist())
-    nutrition_df = pd.concat([nutrition_df, new_row], ignore_index=True)
-    save_csv(nutrition_df, NUTRITION_LOG)
-    st.success("Meal logged.")
-
-st.subheader("Meal History")
-try:
-    nutrition_df = load_csv(NUTRITION_LOG, ["Date", "Meal", "Protein", "Carbs", "Fats", "Calories"])
+    st.subheader("Meal History")
     st.dataframe(nutrition_df.tail(10))
-except Exception as e:
-    st.warning("No meal data found yet.")
+
+with tab2:
+    st.header("🏋️ Log Workout")
+    exercise = st.text_input("Exercise")
+    sets = st.number_input("Sets", min_value=1, value=1)
+    reps = st.number_input("Reps", min_value=1, value=1)
+    weight = st.number_input("Weight (lbs)", min_value=0.0, value=0.0)
+    volume = sets * reps * weight
+
+    if st.button("Log Workout"):
+        new_entry = {
+            "Date": datetime.now(),
+            "Exercise": exercise,
+            "Weight": weight,
+            "Reps": reps,
+            "Sets": sets,
+            "Volume": volume
+        }
+        workout_df = pd.concat([workout_df, pd.DataFrame([new_entry])], ignore_index=True)
+        workout_df.to_csv(WORKOUT_LOG, index=False)
+        st.success("Workout logged!")
+
+    st.subheader("Workout History")
+    st.dataframe(workout_df.tail(10))
+
+with tab3:
+    st.header("💧 Water Intake")
+    ounces = st.number_input("Ounces", min_value=0)
+
+    if st.button("Log Water"):
+        new_entry = {
+            "Date": datetime.now(),
+            "Ounces": ounces
+        }
+        water_df = pd.concat([water_df, pd.DataFrame([new_entry])], ignore_index=True)
+        water_df.to_csv(WATER_LOG, index=False)
+        st.success("Water logged!")
+
+    st.subheader("Water History")
+    st.dataframe(water_df.tail(10))
+
+with tab4:
+    st.header("😴 Sleep Log")
+    hours = st.number_input("Hours Slept", min_value=0.0, value=0.0)
+
+    if st.button("Log Sleep"):
+        new_entry = {
+            "Date": datetime.now(),
+            "Hours": hours
+        }
+        sleep_df = pd.concat([sleep_df, pd.DataFrame([new_entry])], ignore_index=True)
+        sleep_df.to_csv(SLEEP_LOG, index=False)
+        st.success("Sleep logged!")
+
+    st.subheader("Sleep History")
+    st.dataframe(sleep_df.tail(10))
+
+with tab5:
+    st.header("📈 Progress Charts")
+
+    if not workout_df.empty:
+        st.subheader("Workout Volume Over Time")
+        chart = workout_df.groupby(workout_df["Date"].dt.date)["Volume"].sum()
+        st.line_chart(chart)
+
+    if not nutrition_df.empty:
+        st.subheader("Calories Over Time")
+        cal_chart = nutrition_df.groupby(nutrition_df["Date"].dt.date)["Calories"].sum()
+        st.line_chart(cal_chart)
+
+    if not sleep_df.empty:
+        st.subheader("Sleep Duration Over Time")
+        sleep_chart = sleep_df.groupby(sleep_df["Date"].dt.date)["Hours"].sum()
+        st.line_chart(sleep_chart)
+
