@@ -1,84 +1,76 @@
-import streamlit as st 
+import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
 
-# Setup
 st.set_page_config(page_title="Fitness Tracker", layout="centered")
+
 DATA_DIR = "data"
 os.makedirs(DATA_DIR, exist_ok=True)
 
-# File paths
 NUTRITION_LOG = os.path.join(DATA_DIR, "nutrition_log.csv")
 WORKOUT_LOG = os.path.join(DATA_DIR, "workout_log.csv")
 WATER_LOG = os.path.join(DATA_DIR, "water_log.csv")
 SLEEP_LOG = os.path.join(DATA_DIR, "sleep_log.csv")
 
-# Helper function
 def load_csv(path, columns):
     if os.path.exists(path):
         return pd.read_csv(path, parse_dates=["Date"])
     return pd.DataFrame(columns=columns)
 
-# Load logs
+# Load data
 nutrition_df = load_csv(NUTRITION_LOG, ["Date", "Meal", "Protein", "Carbs", "Fats", "Calories"])
 workout_df = load_csv(WORKOUT_LOG, ["Date", "Exercise", "Weight", "Reps", "Sets", "Volume"])
 water_df = load_csv(WATER_LOG, ["Date", "Ounces"])
 sleep_df = load_csv(SLEEP_LOG, ["Date", "Hours"])
 
-# Tabs
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["Nutrition", "Workout Tracker", "Water", "Sleep", "Progress"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["Nutrition", "Workout", "Water", "Sleep", "Progress"])
 
 with tab1:
     st.header("🥗 Nutrition Log")
-    meal = st.text_input("Meal Description")
-    protein = st.number_input("Protein (g)", min_value=0)
-    carbs = st.number_input("Carbs (g)", min_value=0)
-    fats = st.number_input("Fats (g)", min_value=0)
-    calories = st.number_input("Calories", min_value=0)
+    with st.form("nutrition_form"):
+        meal = st.text_input("Meal Description")
+        protein = st.number_input("Protein (g)", min_value=0)
+        carbs = st.number_input("Carbs (g)", min_value=0)
+        fats = st.number_input("Fats (g)", min_value=0)
+        calories = st.number_input("Calories", min_value=0)
+        submitted = st.form_submit_button("Log Meal")
 
-    if st.button("Log Meal"):
-        new_entry = {
-            "Date": datetime.now(),
-            "Meal": meal,
-            "Protein": protein,
-            "Carbs": carbs,
-            "Fats": fats,
-            "Calories": calories
-        }
-        nutrition_df = pd.concat([nutrition_df, pd.DataFrame([new_entry])], ignore_index=True)
-        nutrition_df.to_csv(NUTRITION_LOG, index=False)
-        st.success("Meal logged!")
+        if submitted and meal:
+            new_entry = {
+                "Date": datetime.now(),
+                "Meal": meal,
+                "Protein": protein,
+                "Carbs": carbs,
+                "Fats": fats,
+                "Calories": calories
+            }
+            nutrition_df = pd.concat([nutrition_df, pd.DataFrame([new_entry])], ignore_index=True)
+            nutrition_df.to_csv(NUTRITION_LOG, index=False)
+            st.success("Meal logged!")
 
-    # Daily Goals and Progress Bars
     st.subheader("📈 Daily Nutrition Goals")
     goals = {"Calories": 1424, "Protein": 142, "Fats": 47, "Carbs": 107}
     totals = nutrition_df[["Calories", "Protein", "Fats", "Carbs"]].sum()
 
-    col1, col2 = st.columns(2)
-    with col1:
-        st.metric("Calories", f"{totals['Calories']:.0f} / {goals['Calories']} kcal")
-        st.progress(min(totals['Calories'] / goals["Calories"], 1.0))
-        st.metric("Protein", f"{totals['Protein']:.0f} / {goals['Protein']} g")
-        st.progress(min(totals['Protein'] / goals["Protein"], 1.0))
-    with col2:
-        st.metric("Carbs", f"{totals['Carbs']:.0f} / {goals['Carbs']} g")
-        st.progress(min(totals['Carbs'] / goals["Carbs"], 1.0))
-        st.metric("Fats", f"{totals['Fats']:.0f} / {goals['Fats']} g")
-        st.progress(min(totals['Fats'] / goals["Fats"], 1.0))
+    for key in goals:
+        st.metric(key, f"{int(totals[key])} / {goals[key]} {'kcal' if key == 'Calories' else 'g'}")
+        st.progress(min(totals[key] / goals[key], 1.0))
 
-    # Editable Log
-    st.subheader("📋 Edit Nutrition Log")
-    nutrition_edit = st.data_editor(nutrition_df, num_rows="dynamic", use_container_width=True)
-    if st.button("Save Nutrition Log"):
-        nutrition_edit.to_csv(NUTRITION_LOG, index=False)
-        st.success("Nutrition log saved.")
+    with st.expander("📋 Edit Nutrition Log"):
+        nutrition_edit = st.data_editor(nutrition_df, num_rows="dynamic", use_container_width=True)
+        if st.button("Save Nutrition Log"):
+            nutrition_edit.to_csv(NUTRITION_LOG, index=False)
+            st.success("Nutrition log saved.")
 
 with tab2:
     st.header("🏋️ Log Workout")
-    preset_exercises = ["Chest Press", "Goblet Squat", "declined chest fly", "incline chest fly", "chest fly", "Tricep pulldown", "Lat Pulldown", "pallof press", "woodchopper", "Plank Hold", "Overhead Press", "Deadlift", "glute bridge", "Barbell Row", "calf raise", "Bicep Curl"]
+    preset_exercises = [
+        "Chest Press", "Goblet Squat", "Decline Chest Fly", "Incline Chest Fly", "Chest Fly",
+        "Tricep Pulldown", "Lat Pulldown", "Pallof Press", "Woodchopper", "Plank Hold",
+        "Overhead Press", "Deadlift", "Glute Bridge", "Barbell Row"
+    ]
     exercise = st.selectbox("Exercise", preset_exercises)
-
     sets = st.number_input("Sets", min_value=1, value=1)
     reps = st.number_input("Reps", min_value=1, value=1)
     weight = st.number_input("Weight (lbs)", min_value=0.0, value=0.0)
@@ -97,17 +89,12 @@ with tab2:
         workout_df.to_csv(WORKOUT_LOG, index=False)
         st.success("Workout logged!")
 
-    st.subheader("Workout History")
-    st.dataframe(workout_df.tail(10))
+    with st.expander("🏋️‍♀️ Edit Workout Log"):
+        workout_edit = st.data_editor(workout_df, num_rows="dynamic", use_container_width=True)
+        if st.button("Save Workout Log"):
+            workout_edit.to_csv(WORKOUT_LOG, index=False)
+            st.success("Workout log saved.")
 
-    # Editable Log
-    st.subheader("🏋️ Edit WORKOUT LOG")
-    workoutlog_edit = st.data_editor(workout_df, num_rows="dynamic", use_container_width=True)
-    if st.button("Save workout Log"):
-       workoutlog_edit.to_csv(WORKOUT_LOG, index=False)
-       st.success("WORKOUT LOG saved.")
-        
-    # Max Weight PRs
     st.subheader("🏆 Max Weight PRs")
     if not workout_df.empty:
         pr_df = workout_df.groupby("Exercise")["Weight"].max().reset_index()
@@ -116,7 +103,6 @@ with tab2:
     else:
         st.info("No workout data available to calculate PRs.")
 
-        
 with tab3:
     st.header("💧 Water Intake")
     ounces = st.number_input("Ounces", min_value=0)
@@ -130,8 +116,8 @@ with tab3:
         water_df.to_csv(WATER_LOG, index=False)
         st.success("Water logged!")
 
-    st.subheader("Water History")
-    st.dataframe(water_df.tail(10))
+    with st.expander("Water History"):
+        st.dataframe(water_df.tail(10), use_container_width=True)
 
 with tab4:
     st.header("😴 Sleep Log")
@@ -146,12 +132,11 @@ with tab4:
         sleep_df.to_csv(SLEEP_LOG, index=False)
         st.success("Sleep logged!")
 
-    st.subheader("Sleep History")
-    st.dataframe(sleep_df.tail(10))
+    with st.expander("Sleep History"):
+        st.dataframe(sleep_df.tail(10), use_container_width=True)
 
 with tab5:
-    st.header("📈 Progress Charts")
-
+    st.header("📊 Progress")
     if not workout_df.empty:
         st.subheader("Workout Volume Over Time")
         chart = workout_df.groupby(workout_df["Date"].dt.date)["Volume"].sum()
@@ -166,4 +151,3 @@ with tab5:
         st.subheader("Sleep Duration Over Time")
         sleep_chart = sleep_df.groupby(sleep_df["Date"].dt.date)["Hours"].sum()
         st.line_chart(sleep_chart)
-
