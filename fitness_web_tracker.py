@@ -20,7 +20,7 @@ def load_csv(path, columns):
 def save_csv(df, path):
     df.to_csv(path, index=False)
     
-Save goal data
+#Save goal data
 def save_goals(protein, carbs, fats, calories):
     df = pd.DataFrame([{
         "Protein (g)": protein,
@@ -30,13 +30,13 @@ def save_goals(protein, carbs, fats, calories):
     }])
     df.to_csv(GOALS_FILE, index=False)
 
-Load goals
+#Load goals
 def load_goals():
     if os.path.exists(GOALS_FILE):
         return pd.read_csv(GOALS_FILE).iloc[0]
     return pd.Series({"Protein (g)": 0, "Carbs (g)": 0, "Fats (g)": 0, "Calories": 0})
 
-Main app
+#Main app
 tabs = st.tabs(["🍎 Nutrition", "🏋️‍♂️ Workout Tracker", "💧 Water", "🛌 Sleep", "📈 Progress"])
 
 
