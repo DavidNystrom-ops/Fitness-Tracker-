@@ -19,7 +19,8 @@ def load_csv(path, columns):
 
 def save_csv(df, path):
     df.to_csv(path, index=False)
- Save goal data
+    
+Save goal data
 def save_goals(protein, carbs, fats, calories):
     df = pd.DataFrame([{
         "Protein (g)": protein,
