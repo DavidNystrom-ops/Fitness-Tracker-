@@ -105,7 +105,7 @@ with tab2:
     workoutlog_edit = st.data_editor(workout_df, num_rows="dynamic", use_container_width=True)
     if st.button("Save workout Log"):
        workoutlog_edit.to_csv(WORKOUT_LOG, index=False)
-        st.success("WORKOUT LOG saved.")
+       st.success("WORKOUT LOG saved.")
         
 with tab3:
     st.header("💧 Water Intake")
