@@ -3,6 +3,10 @@ import pandas as pd
 import os
 from datetime import datetime
 
+# Streamlit App
+st.set_page_config(page_title="Fitness Tracker", layout="centered")
+st.title("🏋️‍♂️ Fitness Tracker")
+
 DATA_DIR = "data"
 os.makedirs(DATA_DIR, exist_ok=True)
 
@@ -50,10 +54,6 @@ workout_df = load_csv(WORKOUT_LOG, ["Date", "Exercise", "Weight", "Reps", "Sets"
 water_df = load_csv(WATER_LOG, ["Date", "Ounces"])
 # Sleep
 sleep_df = load_csv(SLEEP_LOG, ["Date", "Hours"])
-
-# Streamlit App
-st.set_page_config(page_title="Fitness Tracker", layout="centered")
-st.title("🏋️‍♂️ Fitness Tracker")
 
 tab1, tab2, tab3, tab4, tab5 = st.tabs(["Nutrition", "Workout Tracker", "Water", "Sleep", "Progress"])
 
