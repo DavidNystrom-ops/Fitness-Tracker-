@@ -100,6 +100,12 @@ with tab2:
     st.subheader("Workout History")
     st.dataframe(workout_df.tail(10))
 
+    # Editable Log
+    st.subheader("🏋️ Edit workout log")
+    workoutlog_edit = st.data_editor(workout_df, num_rows="dynamic", use_container_width=True)
+    if st.button("Save workout Log"):
+        workout_edit.to_csv(workout_LOG, index=False)
+        st.success("workout log saved.")
 with tab3:
     st.header("💧 Water Intake")
     ounces = st.number_input("Ounces", min_value=0)
