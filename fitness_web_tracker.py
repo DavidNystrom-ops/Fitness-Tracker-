@@ -87,12 +87,12 @@ with tab2:
     preset_exercises = [
         "Chest Press", "Goblet Squat", "Decline Chest Fly", "Incline Chest Fly", "Chest Fly",
         "Tricep Pulldown", "Lat Pulldown", "Pallof Press", "Woodchopper", "Plank Hold",
-        "Overhead Press", "Deadlift", "Glute Bridge", "Barbell Row"
+        "Overhead Press", "Deadlift", "Glute Bridge", "Barbell Row", 'Calf Raise", "bench press", " overhead Tricep press", "farmer March"
     ]
     exercise = st.selectbox("Exercise", preset_exercises)
     sets = st.number_input("Sets", min_value=1, value=1)
     reps = st.number_input("Reps", min_value=1, value=1)
-    weight = st.number_input("Weight (lbs)", min_value=0.0, value=0.0)
+    weight = st.number_input("Weight (lbs)", min_value=0, value=0)
     volume = sets * reps * weight
 
     if st.button("Log Workout"):
