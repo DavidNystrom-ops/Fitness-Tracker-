@@ -7,6 +7,9 @@ st.set_page_config(page_title="Fitness Tracker", layout="centered")
 DATA_DIR = "data"
 os.makedirs(DATA_DIR, exist_ok=True)
 
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["Nutrition", "Workout Tracker", "Water", "Sleep", "Progress"])
+
+
 NUTRITION_LOG = os.path.join(DATA_DIR, "nutrition_log.csv")
 
 def load_csv(path, columns):
