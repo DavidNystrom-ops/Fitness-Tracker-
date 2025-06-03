@@ -16,12 +16,12 @@ def load_csv(path, columns):
         return df
     return pd.DataFrame(columns=columns)
     
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["Nutrition", "Workout Tracker", "Water", "Sleep", "Progress"])
-
 nutrition_df = load_csv(NUTRITION_LOG, ["Date", "Meal", "Protein", "Carbs", "Fats", "Calories"])
 today = pd.to_datetime(datetime.now().date())
 nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"], errors="coerce")
 nutrition_today_df = nutrition_df[nutrition_df["Date"].dt.normalize() == today]
+
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["Nutrition", "Workout Tracker", "Water", "Sleep", "Progress"])
 
 # Nutrition Log UI
 st.title("🍔 Nutrition Log")
