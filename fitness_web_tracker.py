@@ -142,8 +142,8 @@ with tab5:
     st.header("📈 Progress")
 
     # Ensure dates are date-only
-    workout_df["Date"] = pd.to_datetime(workout_df["Date"]).dt.date
-    nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"]).dt.date
+    workout_df["Date"] = pd.to_date(workout_df["Date"]).dt.date
+    nutrition_df["Date"] = pd.to_date(nutrition_df["Date"]).dt.date
 
     if not workout_df.empty:
         st.subheader("Workout Volume by Day")
