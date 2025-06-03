@@ -141,18 +141,17 @@ with tab4:
 with tab5:
     st.title("📈 Progress")
     if not workout_df.empty:
-        st.subheader("Workout Volume Over Time")
-        chart = workout_df.groupby(workout_df["Date"].dt.date)["Volume"].sum()
-        st.line_chart(chart)
-    if not nutrition_df.empty:
-        st.subheader("Calories Over Time")
-        cal_chart = nutrition_df.groupby(nutrition_df["Date"].dt.date)["Calories"].sum()
-        st.line_chart(cal_chart)
-    if not sleep_df.empty:
-        st.subheader("Sleep Duration Over Time")
-        sleep_chart = sleep_df.groupby(sleep_df["Date"].dt.date)["Hours"].sum()
-        st.line_chart(sleep_chart)
+        st.subheader("Workout Volume by Day")
+        workout_df["Date"] = pd.to_datetime(workout_df["Date"])
+        daily_volume = workout_df.groupby(workout_df["Date"].dt.date)["Volume"].sum()
+        st.bar_chart(daily_volume)
 
+    if not nutrition_df.empty:
+        st.subheader("Calories by Day")
+        nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"])
+        daily_calories = nutrition_df.groupby(nutrition_df["Date"].dt.date)["Calories"].sum()
+        st.bar_chart(daily_calories)
+        
 with tab6:
     st.title("📅 Workout Planner")
     with st.form("planner_form"):
