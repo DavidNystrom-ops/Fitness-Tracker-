@@ -175,43 +175,38 @@ with tab5:
         calories_by_day.index = calories_by_day.index.astype(str)  # Convert index to string
         st.bar_chart(calories_by_day)
 
-
-
         
 with tab6:
-    st.title("📅 Workout Planner")
-    with st.form("planner_form"):
-        planner_date = st.date_input("Select Date")
-        muscle_group = st.selectbox("Muscle Group", ["Push", "Pull", "Legs", "Chest", "Back", "Shoulders", "Arms", "Full Body"])
-        workout_plan = st.text_area("Planned Workout Details")
-        submit_plan = st.form_submit_button("Add to Planner")
-        if submit_plan:
-            new_plan = {
-                "Date": pd.to_datetime(planner_date),
-                "Muscle Group": muscle_group,
-                "Workout Plan": workout_plan
-            }
-            planner_df = pd.concat([planner_df, pd.DataFrame([new_plan])], ignore_index=True)
-            planner_df.to_csv(PLANNER_LOG, index=False)
-            st.success("Workout plan saved!")
+    st.header("🗓️ Workout Planner")
 
-    st.subheader("🗓️ Visual Workout Calendar")
-    calendar_events = [
-        {
-            "title": f"{row['Muscle Group']}: {str(row['Workout Plan'])[:30]}..." if pd.notna(row['Workout Plan']) else row['Muscle Group'],
-            "start": row["Date"].strftime("%Y-%m-%d"),
-            "allDay": True
+    st.markdown("Plan your future workouts by assigning routines to specific days.")
+
+    # Input layout (better stacked on small screens)
+    selected_date = st.date_input("Select a Date to Plan Workout", datetime.now().date())
+    muscle_group = st.text_input("Muscle Group (e.g., Push, Pull, Chest)")
+    workout_plan = st.text_area("Workout Plan (e.g., Incline DB Press, Rows, etc.)")
+
+    if st.button("Save Workout Plan"):
+        new_entry = {
+            "Date": selected_date,
+            "Muscle Group": muscle_group,
+            "Workout Plan": workout_plan
         }
-        for _, row in planner_df.iterrows()
-    ]
-    calendar_options = {
-        "initialView": "dayGridMonth",
-        "editable": False,
-        "headerToolbar": {
-            "left": "prev,next today",
-            "center": "title",
-            "right": "dayGridMonth,timeGridWeek"
-        }
-    }
-    calendar(events=calendar_events, options=calendar_options)
+        planner_df = pd.concat([planner_df, pd.DataFrame([new_entry])], ignore_index=True)
+        planner_df.to_csv(WORKOUT_PLANNER_LOG, index=False)
+        st.success("Workout plan saved!")
+
+    st.subheader("📅 Your Workout Plans")
+
+    # Group and show in expanders per date
+    if not planner_df.empty:
+        planner_df_sorted = planner_df.sort_values("Date")
+        for date in planner_df_sorted["Date"].drop_duplicates():
+            daily_plans = planner_df_sorted[planner_df_sorted["Date"] == date]
+            with st.expander(f"{date.strftime('%A, %B %d')}"):
+                for _, row in daily_plans.iterrows():
+                    st.markdown(f"**{row['Muscle Group']}**: {row['Workout Plan']}")
+    else:
+        st.info("No workouts planned yet.")
+
 
