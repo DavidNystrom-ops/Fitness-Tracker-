@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import os
@@ -7,11 +8,11 @@ st.set_page_config(page_title="Fitness Tracker", layout="centered")
 DATA_DIR = "data"
 os.makedirs(DATA_DIR, exist_ok=True)
 
+# File paths
 NUTRITION_LOG = os.path.join(DATA_DIR, "nutrition_log.csv")
 WORKOUT_LOG = os.path.join(DATA_DIR, "workout_log.csv")
 WATER_LOG = os.path.join(DATA_DIR, "water_log.csv")
 SLEEP_LOG = os.path.join(DATA_DIR, "sleep_log.csv")
-PLAN_LOG = os.path.join(DATA_DIR, "workout_plan.csv")
 
 def load_csv(path, columns):
     if os.path.exists(path):
@@ -20,18 +21,22 @@ def load_csv(path, columns):
         return df
     return pd.DataFrame(columns=columns)
 
-# Load and filter today's nutrition data
+# Load all logs
 nutrition_df = load_csv(NUTRITION_LOG, ["Date", "Meal", "Protein", "Carbs", "Fats", "Calories"])
+workout_df = load_csv(WORKOUT_LOG, ["Date", "Exercise", "Weight", "Reps", "Sets", "Volume"])
+water_df = load_csv(WATER_LOG, ["Date", "Ounces"])
+sleep_df = load_csv(SLEEP_LOG, ["Date", "Hours"])
+
+# Today's date
 today = pd.to_datetime(datetime.now().date())
-nutrition_today_df = nutrition_df[nutrition_df["Date"].dt.normalize() == today]
 
-# UI Tabs
-tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-    "Nutrition", "Workout Tracker", "Water", "Sleep", "Progress", "Workout Planner"
-])
+# Tabs
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Nutrition", "Workout Tracker", "Water", "Sleep", "Progress", "Workout Planner"])
 
+# --- NUTRITION TAB ---
 with tab1:
-    st.title("🥗 Nutrition Log")
+    st.title("🍔 Nutrition Log")
+    nutrition_today_df = nutrition_df[nutrition_df["Date"].dt.normalize() == today]
 
     with st.form("nutrition_form"):
         meal = st.text_input("Meal Description")
@@ -54,7 +59,8 @@ with tab1:
             nutrition_df.to_csv(NUTRITION_LOG, index=False)
             st.success("Meal logged!")
 
-    st.subheader("📊 Daily Nutrition Goals")
+    # Progress Bars
+    st.subheader("📉 Daily Nutrition Goals")
     goals = {"Calories": 1424, "Protein": 142, "Fats": 47, "Carbs": 107}
     totals = nutrition_today_df[["Calories", "Protein", "Fats", "Carbs"]].sum()
 
@@ -70,17 +76,18 @@ with tab1:
         st.metric("Fats", f"{totals['Fats']:.0f} / {goals['Fats']} g")
         st.progress(min(totals['Fats'] / goals["Fats"], 1.0))
 
+    # Edit nutrition log
     st.subheader("📋 Edit Nutrition Log")
     nutrition_edit = st.data_editor(nutrition_df, num_rows="dynamic", use_container_width=True)
     if st.button("Save Nutrition Log"):
         nutrition_edit.to_csv(NUTRITION_LOG, index=False)
         st.success("Nutrition log saved.")
 
-
+# --- WORKOUT TAB ---
 with tab2:
     st.header("🏋️ Log Workout")
     preset_exercises = [
-        "Chest Press", "Goblet Squat", "Decline Chest Fly", "Incline Chest Fly", "Chest Fly",
+        "Chest Press", "Goblet Squat", "Declined Chest Fly", "Incline Chest Fly", "Chest Fly",
         "Tricep Pulldown", "Lat Pulldown", "Pallof Press", "Woodchopper", "Plank Hold",
         "Overhead Press", "Deadlift", "Glute Bridge", "Barbell Row"
     ]
@@ -103,11 +110,14 @@ with tab2:
         workout_df.to_csv(WORKOUT_LOG, index=False)
         st.success("Workout logged!")
 
-    with st.expander("🏋️‍♀️ Edit Workout Log"):
-        workout_edit = st.data_editor(workout_df, num_rows="dynamic", use_container_width=True)
-        if st.button("Save Workout Log"):
-            workout_edit.to_csv(WORKOUT_LOG, index=False)
-            st.success("Workout log saved.")
+    st.subheader("Workout History")
+    st.dataframe(workout_df.tail(10))
+
+    st.subheader("🛠 Edit Workout Log")
+    workout_edit = st.data_editor(workout_df, num_rows="dynamic", use_container_width=True)
+    if st.button("Save Workout Log"):
+        workout_edit.to_csv(WORKOUT_LOG, index=False)
+        st.success("Workout log saved.")
 
     st.subheader("🏆 Max Weight PRs")
     if not workout_df.empty:
@@ -117,40 +127,34 @@ with tab2:
     else:
         st.info("No workout data available to calculate PRs.")
 
+# --- WATER TAB ---
 with tab3:
     st.header("💧 Water Intake")
     ounces = st.number_input("Ounces", min_value=0)
-
     if st.button("Log Water"):
-        new_entry = {
-            "Date": datetime.now(),
-            "Ounces": ounces
-        }
+        new_entry = {"Date": datetime.now(), "Ounces": ounces}
         water_df = pd.concat([water_df, pd.DataFrame([new_entry])], ignore_index=True)
         water_df.to_csv(WATER_LOG, index=False)
         st.success("Water logged!")
+    st.subheader("Water History")
+    st.dataframe(water_df.tail(10))
 
-    with st.expander("Water History"):
-        st.dataframe(water_df.tail(10), use_container_width=True)
-
+# --- SLEEP TAB ---
 with tab4:
     st.header("😴 Sleep Log")
     hours = st.number_input("Hours Slept", min_value=0.0, value=0.0)
-
     if st.button("Log Sleep"):
-        new_entry = {
-            "Date": datetime.now(),
-            "Hours": hours
-        }
+        new_entry = {"Date": datetime.now(), "Hours": hours}
         sleep_df = pd.concat([sleep_df, pd.DataFrame([new_entry])], ignore_index=True)
         sleep_df.to_csv(SLEEP_LOG, index=False)
         st.success("Sleep logged!")
+    st.subheader("Sleep History")
+    st.dataframe(sleep_df.tail(10))
 
-    with st.expander("Sleep History"):
-        st.dataframe(sleep_df.tail(10), use_container_width=True)
-
+# --- PROGRESS TAB ---
 with tab5:
-    st.header("📊 Progress")
+    st.header("📈 Progress Charts")
+
     if not workout_df.empty:
         st.subheader("Workout Volume Over Time")
         chart = workout_df.groupby(workout_df["Date"].dt.date)["Volume"].sum()
@@ -165,3 +169,13 @@ with tab5:
         st.subheader("Sleep Duration Over Time")
         sleep_chart = sleep_df.groupby(sleep_df["Date"].dt.date)["Hours"].sum()
         st.line_chart(sleep_chart)
+
+# --- WORKOUT PLANNER ---
+with tab6:
+    st.header("🗓️ Workout Planner")
+    st.markdown("Use this calendar to plan workout types (e.g., Push, Pull, Legs, Chest, etc.)")
+
+    selected_date = st.date_input("Select a date to plan your workout")
+    workout_plan = st.text_input("Workout Plan for selected date", placeholder="e.g. Push Day")
+    if st.button("Save Workout Plan"):
+        st.success(f"Workout plan for {selected_date} saved: {workout_plan} (Not yet connected to backend)")
