@@ -8,6 +8,9 @@ DATA_DIR = "data"
 os.makedirs(DATA_DIR, exist_ok=True)
 
 NUTRITION_LOG = os.path.join(DATA_DIR, "nutrition_log.csv")
+WORKOUT_LOG = os.path.join(DATA_DIR, "workout_log.csv")
+WATER_LOG = os.path.join(DATA_DIR, "water_log.csv")
+SLEEP_LOG = os.path.join(DATA_DIR, "sleep_log.csv")
 
 def load_csv(path, columns):
     if os.path.exists(path):
@@ -15,62 +18,62 @@ def load_csv(path, columns):
         df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
         return df
     return pd.DataFrame(columns=columns)
-    
+
+# Load and filter today's nutrition data
 nutrition_df = load_csv(NUTRITION_LOG, ["Date", "Meal", "Protein", "Carbs", "Fats", "Calories"])
 today = pd.to_datetime(datetime.now().date())
 nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"], errors="coerce")
 nutrition_today_df = nutrition_df[nutrition_df["Date"].dt.normalize() == today]
 
+# UI Tabs
 tab1, tab2, tab3, tab4, tab5 = st.tabs(["Nutrition", "Workout Tracker", "Water", "Sleep", "Progress"])
 
-# Nutrition Log UI
-st.title("🍔 Nutrition Log")
-with st.form("nutrition_form"):
-    meal = st.text_input("Meal Description")
-    protein = st.number_input("Protein (g)", min_value=0)
-    carbs = st.number_input("Carbs (g)", min_value=0)
-    fats = st.number_input("Fats (g)", min_value=0)
-    calories = st.number_input("Calories", min_value=0)
-    submitted = st.form_submit_button("Log Meal")
+with tab1:
+    st.title("🥗 Nutrition Log")
 
-    if submitted and meal:
-        new_row = {
-            "Date": datetime.now(),
-            "Meal": meal,
-            "Protein": protein,
-            "Carbs": carbs,
-            "Fats": fats,
-            "Calories": calories
-        }
-        nutrition_df = pd.concat([nutrition_df, pd.DataFrame([new_row])], ignore_index=True)
-        nutrition_df.to_csv(NUTRITION_LOG, index=False)
-        st.success("Meal logged successfully!")
+    with st.form("nutrition_form"):
+        meal = st.text_input("Meal Description")
+        protein = st.number_input("Protein (g)", min_value=0)
+        carbs = st.number_input("Carbs (g)", min_value=0)
+        fats = st.number_input("Fats (g)", min_value=0)
+        calories = st.number_input("Calories", min_value=0)
+        submitted = st.form_submit_button("Log Meal")
 
-# Daily Goals and Progress Bars
-st.subheader("📈 Daily Nutrition Goals")
-goals = {"Calories": 1424, "Protein": 142, "Fats": 47, "Carbs": 107}
-totals = nutrition_today_df[["Calories", "Protein", "Fats", "Carbs"]].sum()
+        if submitted and meal:
+            new_row = {
+                "Date": datetime.now(),
+                "Meal": meal,
+                "Protein": protein,
+                "Carbs": carbs,
+                "Fats": fats,
+                "Calories": calories
+            }
+            nutrition_df = pd.concat([nutrition_df, pd.DataFrame([new_row])], ignore_index=True)
+            nutrition_df.to_csv(NUTRITION_LOG, index=False)
+            st.success("Meal logged!")
 
-col1, col2 = st.columns(2)
-with col1:
-    st.metric("Calories", f"{totals['Calories']:.0f} / {goals['Calories']} kcal")
-    st.progress(min(totals['Calories'] / goals["Calories"], 1.0))
-    st.metric("Protein", f"{totals['Protein']:.0f} / {goals['Protein']} g")
-    st.progress(min(totals['Protein'] / goals["Protein"], 1.0))
-with col2:
-    st.metric("Carbs", f"{totals['Carbs']:.0f} / {goals['Carbs']} g")
-    st.progress(min(totals['Carbs'] / goals["Carbs"], 1.0))
-    st.metric("Fats", f"{totals['Fats']:.0f} / {goals['Fats']} g")
-    st.progress(min(totals['Fats'] / goals["Fats"], 1.0))
+    st.subheader("📊 Daily Nutrition Goals")
+    goals = {"Calories": 1424, "Protein": 142, "Fats": 47, "Carbs": 107}
+    totals = nutrition_today_df[["Calories", "Protein", "Fats", "Carbs"]].sum()
 
-# Editable Log
-st.subheader("📋 Edit Nutrition Log")
-nutrition_edit = st.data_editor(nutrition_today_df, num_rows="dynamic", use_container_width=True)
-if st.button("Save Nutrition Log"):
-    other_days = nutrition_df[nutrition_df["Date"].dt.date != today.date()]
-    nutrition_df = pd.concat([other_days, nutrition_edit], ignore_index=True)
-    nutrition_df.to_csv(NUTRITION_LOG, index=False)
-    st.success("Nutrition log saved.")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Calories", f"{totals['Calories']:.0f} / {goals['Calories']} kcal")
+        st.progress(min(totals['Calories'] / goals["Calories"], 1.0))
+        st.metric("Protein", f"{totals['Protein']:.0f} / {goals['Protein']} g")
+        st.progress(min(totals['Protein'] / goals["Protein"], 1.0))
+    with col2:
+        st.metric("Carbs", f"{totals['Carbs']:.0f} / {goals['Carbs']} g")
+        st.progress(min(totals['Carbs'] / goals["Carbs"], 1.0))
+        st.metric("Fats", f"{totals['Fats']:.0f} / {goals['Fats']} g")
+        st.progress(min(totals['Fats'] / goals["Fats"], 1.0))
+
+    st.subheader("📋 Edit Nutrition Log")
+    nutrition_edit = st.data_editor(nutrition_df, num_rows="dynamic", use_container_width=True)
+    if st.button("Save Nutrition Log"):
+        nutrition_edit.to_csv(NUTRITION_LOG, index=False)
+        st.success("Nutrition log saved.")
+
 
 with tab2:
     st.header("🏋️ Log Workout")
