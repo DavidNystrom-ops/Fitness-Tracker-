@@ -18,7 +18,8 @@ def load_csv(path, columns):
 
 nutrition_df = load_csv(NUTRITION_LOG, ["Date", "Meal", "Protein", "Carbs", "Fats", "Calories"])
 today = pd.to_datetime(datetime.now().date())
-nutrition_today_df = nutrition_df[nutrition_df["Date"].dt.date == today.date()]
+nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"], errors="coerce")
+nutrition_today_df = nutrition_df[nutrition_df["Date"].dt.normalize() == today]
 
 # Nutrition Log UI
 st.title("🍔 Nutrition Log")
