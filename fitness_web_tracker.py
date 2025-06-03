@@ -83,8 +83,13 @@ with tab1:
         st.success("Nutrition log saved.")
 
 with tab2:
-    st.title("🏋️ Log Workout")
-    exercise = st.text_input("Exercise")
+    st.header("🏋️ Log Workout")
+    preset_exercises = [
+        "Chest Press", "Goblet Squat", "Decline Chest Fly", "Incline Chest Fly", "Chest Fly",
+        "Tricep Pulldown", "Lat Pulldown", "Pallof Press", "Woodchopper", "Plank Hold",
+        "Overhead Press", "Deadlift", "Glute Bridge", "Barbell Row"
+    ]
+    exercise = st.selectbox("Exercise", preset_exercises)
     sets = st.number_input("Sets", min_value=1, value=1)
     reps = st.number_input("Reps", min_value=1, value=1)
     weight = st.number_input("Weight (lbs)", min_value=0.0, value=0.0)
@@ -103,8 +108,21 @@ with tab2:
         workout_df.to_csv(WORKOUT_LOG, index=False)
         st.success("Workout logged!")
 
-    st.subheader("Workout History")
-    st.dataframe(workout_df.tail(10))
+    with st.expander("🏋️‍♀️ Edit Workout Log"):
+        workout_edit = st.data_editor(workout_df, num_rows="dynamic", use_container_width=True)
+        if st.button("Save Workout Log"):
+            workout_edit.to_csv(WORKOUT_LOG, index=False)
+            st.success("Workout log saved.")
+
+    st.subheader("🏆 Max Weight PRs")
+    if not workout_df.empty:
+        pr_df = workout_df.groupby("Exercise")["Weight"].max().reset_index()
+        pr_df = pr_df.sort_values("Weight", ascending=False)
+        st.dataframe(pr_df, use_container_width=True)
+    else:
+        st.info("No workout data available to calculate PRs.")
+
+
 
 with tab3:
     st.title("💧 Water Intake")
