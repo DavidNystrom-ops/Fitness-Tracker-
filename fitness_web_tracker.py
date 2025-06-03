@@ -7,9 +7,6 @@ st.set_page_config(page_title="Fitness Tracker", layout="centered")
 DATA_DIR = "data"
 os.makedirs(DATA_DIR, exist_ok=True)
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["Nutrition", "Workout Tracker", "Water", "Sleep", "Progress"])
-
-
 NUTRITION_LOG = os.path.join(DATA_DIR, "nutrition_log.csv")
 
 def load_csv(path, columns):
@@ -18,7 +15,10 @@ def load_csv(path, columns):
         df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
         return df
     return pd.DataFrame(columns=columns)
+    
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["Nutrition", "Workout Tracker", "Water", "Sleep", "Progress"])
 
+With tab1
 nutrition_df = load_csv(NUTRITION_LOG, ["Date", "Meal", "Protein", "Carbs", "Fats", "Calories"])
 today = pd.to_datetime(datetime.now().date())
 nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"], errors="coerce")
