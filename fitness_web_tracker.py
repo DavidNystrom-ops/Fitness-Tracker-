@@ -173,7 +173,7 @@ with tab6:
     st.subheader("🗓️ Visual Workout Calendar")
     calendar_events = [
         {
-            "title": f"{row['Muscle Group']}: {row['Workout Plan'][:30]}...",
+            "title": f"{row['Muscle Group']}: {str(row['Workout Plan'])[:30]}..." if pd.notna(row['Workout Plan']) else row['Muscle Group'],
             "start": row["Date"].strftime("%Y-%m-%d"),
             "allDay": True
         }
