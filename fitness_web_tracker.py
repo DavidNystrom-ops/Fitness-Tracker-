@@ -172,10 +172,32 @@ with tab5:
 
 # --- WORKOUT PLANNER ---
 with tab6:
-    st.header("🗓️ Workout Planner")
-    st.markdown("Use this calendar to plan workout types (e.g., Push, Pull, Legs, Chest, etc.)")
+   # --- Workout Planner ---
+WORKOUT_PLANNER = os.path.join(DATA_DIR, "workout_planner.csv")
 
-    selected_date = st.date_input("Select a date to plan your workout")
-    workout_plan = st.text_input("Workout Plan for selected date", placeholder="e.g. Push Day")
-    if st.button("Save Workout Plan"):
-        st.success(f"Workout plan for {selected_date} saved: {workout_plan} (Not yet connected to backend)")
+def load_or_create_planner():
+    if os.path.exists(WORKOUT_PLANNER):
+        return pd.read_csv(WORKOUT_PLANNER, parse_dates=["Date"])
+    return pd.DataFrame(columns=["Date", "Muscle Group", "Workout Plan"])
+
+def save_plan_to_csv(df):
+    df.to_csv(WORKOUT_PLANNER, index=False)
+
+planner_df = load_or_create_planner()
+
+st.header("📅 Workout Planner")
+selected_date = st.date_input("Choose a day", datetime.now().date())
+muscle_group = st.selectbox("Muscle Group / Routine", ["Push", "Pull", "Legs", "Chest", "Back", "Arms", "Full Body", "Rest"])
+plan = st.text_area("Workout Plan (e.g., exercises, reps, sets)")
+
+if st.button("Save Workout Plan"):
+    new_row = {"Date": selected_date, "Muscle Group": muscle_group, "Workout Plan": plan}
+    planner_df = pd.concat([planner_df, pd.DataFrame([new_row])], ignore_index=True)
+    save_plan_to_csv(planner_df)
+    st.success("Workout plan saved!")
+
+st.subheader("📖 Planned Workouts")
+if not planner_df.empty:
+    st.dataframe(planner_df.sort_values("Date"), use_container_width=True)
+else:
+    st.info("No planned workouts yet.")
