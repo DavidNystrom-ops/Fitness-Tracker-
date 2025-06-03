@@ -11,6 +11,7 @@ NUTRITION_LOG = os.path.join(DATA_DIR, "nutrition_log.csv")
 WORKOUT_LOG = os.path.join(DATA_DIR, "workout_log.csv")
 WATER_LOG = os.path.join(DATA_DIR, "water_log.csv")
 SLEEP_LOG = os.path.join(DATA_DIR, "sleep_log.csv")
+PLAN_LOG = os.path.join(DATA_DIR, "workout_plan.csv")
 
 def load_csv(path, columns):
     if os.path.exists(path):
@@ -22,11 +23,12 @@ def load_csv(path, columns):
 # Load and filter today's nutrition data
 nutrition_df = load_csv(NUTRITION_LOG, ["Date", "Meal", "Protein", "Carbs", "Fats", "Calories"])
 today = pd.to_datetime(datetime.now().date())
-nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"], errors="coerce")
 nutrition_today_df = nutrition_df[nutrition_df["Date"].dt.normalize() == today]
 
 # UI Tabs
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["Nutrition", "Workout Tracker", "Water", "Sleep", "Progress"])
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    "Nutrition", "Workout Tracker", "Water", "Sleep", "Progress", "Workout Planner"
+])
 
 with tab1:
     st.title("🥗 Nutrition Log")
