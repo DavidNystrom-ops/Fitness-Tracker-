@@ -141,19 +141,22 @@ with tab4:
 with tab5:
     st.header("📈 Progress")
 
-    # Ensure dates are date-only
+    # Ensure only the date part is used
     workout_df["Date"] = pd.to_datetime(workout_df["Date"]).dt.date
     nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"]).dt.date
 
     if not workout_df.empty:
         st.subheader("Workout Volume by Day")
         volume_by_day = workout_df.groupby("Date")["Volume"].sum()
+        volume_by_day.index = volume_by_day.index.astype(str)  # Convert index to string
         st.bar_chart(volume_by_day)
 
     if not nutrition_df.empty:
         st.subheader("Calories by Day")
         calories_by_day = nutrition_df.groupby("Date")["Calories"].sum()
+        calories_by_day.index = calories_by_day.index.astype(str)  # Convert index to string
         st.bar_chart(calories_by_day)
+
 
 
         
