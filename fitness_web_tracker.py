@@ -139,19 +139,22 @@ with tab4:
     st.dataframe(sleep_df.tail(10))
 
 with tab5:
-    st.header("📈 Progress Charts")
+    st.header("📈 Progress")
+
+    # Ensure dates are date-only
+    workout_df["Date"] = pd.to_datetime(workout_df["Date"]).dt.date
+    nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"]).dt.date
 
     if not workout_df.empty:
         st.subheader("Workout Volume by Day")
-        workout_df["Date"] = pd.to_datetime(workout_df["Date"]).dt.date
-        workout_chart = workout_df.groupby("Date")["Volume"].sum()
-        st.bar_chart(workout_chart)
+        volume_by_day = workout_df.groupby("Date")["Volume"].sum()
+        st.bar_chart(volume_by_day)
 
     if not nutrition_df.empty:
         st.subheader("Calories by Day")
-        nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"]).dt.date
-        calories_chart = nutrition_df.groupby("Date")["Calories"].sum()
-        st.bar_chart(calories_chart)
+        calories_by_day = nutrition_df.groupby("Date")["Calories"].sum()
+        st.bar_chart(calories_by_day)
+
 
         
 with tab6:
