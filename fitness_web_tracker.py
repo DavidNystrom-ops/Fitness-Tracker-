@@ -31,34 +31,54 @@ planner_df = load_csv(PLANNER_LOG, ["Date", "Muscle Group", "Workout Plan"])
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Nutrition", "Workout Tracker", "Water", "Sleep", "Progress", "Workout Planner"])
 
 with tab1:
-    st.title("🍔 Nutrition Log")
-    today = pd.to_datetime(datetime.now().date())
-    if not nutrition_df.empty:
-        nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"], errors="coerce")
-        nutrition_today_df = nutrition_df[nutrition_df["Date"].dt.normalize() == today]
-    else:
-        nutrition_today_df = pd.DataFrame(columns=nutrition_df.columns)
+    st.header("🥗 Nutrition Log")
 
-    with st.form("nutrition_form"):
-        meal = st.text_input("Meal Description")
-        protein = st.number_input("Protein (g)", min_value=0)
-        carbs = st.number_input("Carbs (g)", min_value=0)
-        fats = st.number_input("Fats (g)", min_value=0)
-        calories = st.number_input("Calories", min_value=0)
-        submitted = st.form_submit_button("Log Meal")
+    # Ensure 'Date' is datetime and load history
+    nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"])
+    previous_meals = nutrition_df.dropna(subset=["Meal"])
+    recent_entries = (
+        previous_meals.sort_values("Date")
+        .drop_duplicates(subset=["Meal"], keep="last")
+        [["Meal", "Protein", "Carbs", "Fats", "Calories"]]
+        .set_index("Meal")
+        .to_dict(orient="index")
+    )
 
-        if submitted and meal:
-            new_row = {
-                "Date": datetime.now(),
-                "Meal": meal,
-                "Protein": protein,
-                "Carbs": carbs,
-                "Fats": fats,
-                "Calories": calories
-            }
-            nutrition_df = pd.concat([nutrition_df, pd.DataFrame([new_row])], ignore_index=True)
-            nutrition_df.to_csv(NUTRITION_LOG, index=False)
-            st.success("Meal logged!")
+    # Input fields
+    meal = st.text_input("Meal Description")
+
+    # Autofill macro values if meal has been logged before
+    default_protein = default_carbs = default_fats = default_calories = 0
+    for name in recent_entries:
+        if meal.lower() == name.lower():
+            defaults = recent_entries[name]
+            default_protein = int(defaults["Protein"])
+            default_carbs = int(defaults["Carbs"])
+            default_fats = int(defaults["Fats"])
+            default_calories = int(defaults["Calories"])
+            break
+
+    protein = st.number_input("Protein (g)", min_value=0, value=default_protein)
+    carbs = st.number_input("Carbs (g)", min_value=0, value=default_carbs)
+    fats = st.number_input("Fats (g)", min_value=0, value=default_fats)
+    calories = st.number_input("Calories", min_value=0, value=default_calories)
+
+    if st.button("Log Meal"):
+        new_entry = {
+            "Date": datetime.now(),
+            "Meal": meal,
+            "Protein": protein,
+            "Carbs": carbs,
+            "Fats": fats,
+            "Calories": calories
+        }
+        nutrition_df = pd.concat([nutrition_df, pd.DataFrame([new_entry])], ignore_index=True)
+        nutrition_df.to_csv(NUTRITION_LOG, index=False)
+        st.success("Meal logged!")
+
+    st.subheader("Meal History")
+    st.dataframe(nutrition_df.tail(10))
+
 
     st.subheader("📈 Daily Nutrition Goals")
     goals = {"Calories": 1424, "Protein": 142, "Fats": 47, "Carbs": 107}
