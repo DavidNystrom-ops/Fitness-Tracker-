@@ -5,9 +5,10 @@ from datetime import datetime
 from streamlit_calendar import calendar
 import shutil
 
-# Setup
+# ✅ MUST be the first Streamlit command
 st.set_page_config(page_title="Fitness Tracker", layout="centered")
 
+# Setup
 DATA_DIR = "data"
 BACKUP_DIR = os.path.join(DATA_DIR, "backups")
 os.makedirs(DATA_DIR, exist_ok=True)
@@ -26,6 +27,7 @@ def backup_csv_logs():
 if st.sidebar.button("💾 Backup Logs"):
     backup_csv_logs()
     st.sidebar.success("Logs backed up!")
+
 
 # File paths
 NUTRITION_LOG = os.path.join(DATA_DIR, "nutrition_log.csv")
