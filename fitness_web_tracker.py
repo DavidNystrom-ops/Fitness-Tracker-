@@ -71,7 +71,6 @@ with tab1:
         .to_dict(orient="index")
     )
 
-
     # Input fields
     meal = st.text_input("Meal Description")
 
@@ -106,7 +105,6 @@ with tab1:
 
     st.subheader("Meal History")
     st.dataframe(nutrition_df.tail(10))
-
 
     st.subheader("📈 Daily Nutrition Goals")
     goals = {"Calories": 1424, "Protein": 142, "Fats": 47, "Carbs": 107}
@@ -170,8 +168,6 @@ with tab2:
     else:
         st.info("No workout data available to calculate PRs.")
 
-
-
 with tab3:
     st.title("💧 Water Intake")
 
@@ -189,7 +185,6 @@ with tab3:
         water_edit.to_csv(WATER_LOG, index=False)
         st.success("Water log saved!")
 
-
 with tab4:
     st.title("😴 Sleep Log")
 
@@ -206,7 +201,6 @@ with tab4:
     if st.button("Save Sleep Log"):
         sleep_edit.to_csv(SLEEP_LOG, index=False)
         st.success("Sleep log saved!")
-
 
 with tab5:
     st.header("📈 Progress")
@@ -226,8 +220,7 @@ with tab5:
         calories_by_day = nutrition_df.groupby("Date")["Calories"].sum()
         calories_by_day.index = calories_by_day.index.astype(str)  # Convert index to string
         st.bar_chart(calories_by_day)
-
-        
+ 
 with tab6:
     st.header("🗓️ Workout Planner")
 
