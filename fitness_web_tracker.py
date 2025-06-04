@@ -174,35 +174,39 @@ with tab2:
 
 with tab3:
     st.title("💧 Water Intake")
+
     ounces = st.number_input("Ounces", min_value=0)
 
     if st.button("Log Water"):
-        new_entry = {
-            "Date": datetime.now(),
-            "Ounces": ounces
-        }
+        new_entry = {"Date": datetime.now(), "Ounces": ounces}
         water_df = pd.concat([water_df, pd.DataFrame([new_entry])], ignore_index=True)
         water_df.to_csv(WATER_LOG, index=False)
         st.success("Water logged!")
 
-    st.subheader("Water History")
-    st.dataframe(water_df.tail(10))
+    st.subheader("📋 Edit Water Log")
+    water_edit = st.data_editor(water_df, num_rows="dynamic", use_container_width=True)
+    if st.button("Save Water Log"):
+        water_edit.to_csv(WATER_LOG, index=False)
+        st.success("Water log saved!")
+
 
 with tab4:
     st.title("😴 Sleep Log")
+
     hours = st.number_input("Hours Slept", min_value=0.0, value=0.0)
 
     if st.button("Log Sleep"):
-        new_entry = {
-            "Date": datetime.now(),
-            "Hours": hours
-        }
+        new_entry = {"Date": datetime.now(), "Hours": hours}
         sleep_df = pd.concat([sleep_df, pd.DataFrame([new_entry])], ignore_index=True)
         sleep_df.to_csv(SLEEP_LOG, index=False)
         st.success("Sleep logged!")
 
-    st.subheader("Sleep History")
-    st.dataframe(sleep_df.tail(10))
+    st.subheader("📋 Edit Sleep Log")
+    sleep_edit = st.data_editor(sleep_df, num_rows="dynamic", use_container_width=True)
+    if st.button("Save Sleep Log"):
+        sleep_edit.to_csv(SLEEP_LOG, index=False)
+        st.success("Sleep log saved!")
+
 
 with tab5:
     st.header("📈 Progress")
