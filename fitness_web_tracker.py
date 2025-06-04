@@ -5,25 +5,27 @@ from datetime import datetime
 from streamlit_calendar import calendar
 import shutil
 
-# Create a backups folder if it doesn't exist
-BACKUP_DIR = os.path.join("data", "backups")
+# Setup
+st.set_page_config(page_title="Fitness Tracker", layout="centered")
+
+DATA_DIR = "data"
+BACKUP_DIR = os.path.join(DATA_DIR, "backups")
+os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(BACKUP_DIR, exist_ok=True)
 
+# Backup function
 def backup_csv_logs():
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     for filename in ["nutrition_log.csv", "sleep_log.csv", "water_log.csv", "workout_data.csv"]:
-        src = os.path.join("data", filename)
+        src = os.path.join(DATA_DIR, filename)
         if os.path.exists(src):
             dst = os.path.join(BACKUP_DIR, f"{timestamp}_{filename}")
             shutil.copy2(src, dst)
-if st.sidebar.button("📦 Backup Logs"):
+
+# Sidebar backup button
+if st.sidebar.button("💾 Backup Logs"):
     backup_csv_logs()
     st.sidebar.success("Logs backed up!")
-
-# Setup
-st.set_page_config(page_title="Fitness Tracker", layout="centered")
-DATA_DIR = "data"
-os.makedirs(DATA_DIR, exist_ok=True)
 
 # File paths
 NUTRITION_LOG = os.path.join(DATA_DIR, "nutrition_log.csv")
