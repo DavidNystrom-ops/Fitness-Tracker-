@@ -86,7 +86,7 @@ with tab2:
     st.header("🏋️ Log Workout")
     preset_exercises = [
         "Chest Press", "Goblet Squat", "Decline Chest Fly", "Incline Chest Fly", "Chest Fly",
-        "Tricep Pulldown", "Lat Pulldown", "Pallof Press", "Woodchopper", "Plank Hold",
+        "Tricep Pulldown", "Lat Pulldown", "Pallof Press", "Woodchopper", "Plank Hold", "bicep curl", "hammer Curl",
         "Overhead Press", "Deadlift", "Glute Bridge", "Barbell Row", "Calf Raise", "bench press", "overhead Tricep press", "farmer March"
         ]
     exercise = st.selectbox("Exercise", preset_exercises)
