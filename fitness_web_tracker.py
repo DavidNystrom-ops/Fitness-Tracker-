@@ -32,6 +32,11 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Nutrition", "Workout Tracker", "W
 
 with tab1:
     st.header("🥗 Nutrition Log")
+    
+today = pd.to_datetime(datetime.now().date())
+nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"], errors="coerce")
+nutrition_today_df = nutrition_df[nutrition_df["Date"].dt.normalize() == today]
+totals = nutrition_today_df[["Calories", "Protein", "Fats", "Carbs"]].sum()
 
     # Ensure 'Date' is datetime and load history
     nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"])
