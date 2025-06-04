@@ -32,14 +32,16 @@ tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Nutrition", "Workout Tracker", "W
 
 with tab1:
     st.header("🥗 Nutrition Log")
-    
-today = pd.to_datetime(datetime.now().date())
-nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"], errors="coerce")
-nutrition_today_df = nutrition_df[nutrition_df["Date"].dt.normalize() == today]
-totals = nutrition_today_df[["Calories", "Protein", "Fats", "Carbs"]].sum()
 
-    # Ensure 'Date' is datetime and load history
-    nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"])
+    today = pd.to_datetime(datetime.now().date())
+    # Convert "Date" just once
+    nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"], errors="coerce")
+
+    # Filter today's entries
+    nutrition_today_df = nutrition_df[nutrition_df["Date"].dt.normalize() == today]
+    totals = nutrition_today_df[["Calories", "Protein", "Fats", "Carbs"]].sum()
+
+    # Prepare previous meals for autofill
     previous_meals = nutrition_df.dropna(subset=["Meal"])
     recent_entries = (
         previous_meals.sort_values("Date")
@@ -48,6 +50,7 @@ totals = nutrition_today_df[["Calories", "Protein", "Fats", "Carbs"]].sum()
         .set_index("Meal")
         .to_dict(orient="index")
     )
+
 
     # Input fields
     meal = st.text_input("Meal Description")
