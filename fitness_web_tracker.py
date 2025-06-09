@@ -90,8 +90,8 @@ with tab1:
 
     # Initialize session state
     for key in ["meal", "protein", "carbs", "fats", "calories"]:
-    if key in st.session_state:
-        st.session_state[key] = "" if key == "meal" else 0
+        if key in st.session_state:
+            st.session_state[key] = "" if key == "meal" else 0
 
     today = pd.to_datetime(datetime.now().date())
     nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"], errors="coerce")
