@@ -88,17 +88,17 @@ for key in ["protein", "carbs", "fats", "calories"]:
 with tab1:
     st.header("🥗 Nutrition Log")
 
-    # Initialize session state
+    # Initialize session state safely
     for key in ["meal", "protein", "carbs", "fats", "calories"]:
-    if key in st.session_state:
-         st.session_state[key] = "" if key == "meal" else 0
+        if key not in st.session_state:
+            st.session_state[key] = "" if key == "meal" else 0
 
     today = pd.to_datetime(datetime.now().date())
     nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"], errors="coerce")
     nutrition_today_df = nutrition_df[nutrition_df["Date"].dt.normalize() == today]
     totals = nutrition_today_df[["Calories", "Protein", "Fats", "Carbs"]].sum()
 
-    # Recent meals for USDA reference (last 20)
+    # Recent meal history (limit to last 20 unique)
     previous_meals = nutrition_df.dropna(subset=["Meal"])
     recent_entries = (
         previous_meals.sort_values("Date")
@@ -108,10 +108,11 @@ with tab1:
         .to_dict(orient="index")
     )
 
-    # User input for meal
-    meal = st.text_input("Meal Description", value=st.session_state["meal"], placeholder="e.g. Banana or Chicken Breast")
+    # Meal input
+    meal = st.text_input("Meal Description", value=st.session_state["meal"], placeholder="e.g. Chicken Breast")
     st.session_state["meal"] = meal
 
+    # USDA lookup
     if st.button("🔍 Search Nutrition Info"):
         result = fetch_usda_nutrition(meal)
         if result:
@@ -121,9 +122,9 @@ with tab1:
             st.session_state["calories"] = result["Calories"]
             st.toast("✅ Nutrition info loaded!", icon="🍎")
         else:
-            st.warning("No nutrition info found. Try a simpler food name.")
+            st.warning("No nutrition info found. Try a simpler item name.")
 
-    # Macro inputs (read from session)
+    # Macro fields using session state
     st.session_state["protein"] = st.number_input("Protein (g)", min_value=0, value=st.session_state["protein"])
     st.session_state["carbs"] = st.number_input("Carbs (g)", min_value=0, value=st.session_state["carbs"])
     st.session_state["fats"] = st.number_input("Fats (g)", min_value=0, value=st.session_state["fats"])
@@ -136,45 +137,7 @@ with tab1:
             "Protein": st.session_state["protein"],
             "Carbs": st.session_state["carbs"],
             "Fats": st.session_state["fats"],
-            "Calories": st.session_state["calories"]
-        }
-        nutrition_df = pd.concat([nutrition_df, pd.DataFrame([new_entry])], ignore_index=True)
-        nutrition_df.to_csv(NUTRITION_LOG, index=False)
-        st.toast("✅ Meal logged!", icon="🍽️")
-
-        # Reset form fields
-        st.session_state["meal"] = ""
-        st.session_state["protein"] = 0
-        st.session_state["carbs"] = 0
-        st.session_state["fats"] = 0
-        st.session_state["calories"] = 0
-
-        st.experimental_rerun()
-
-    st.subheader("Meal History")
-    st.dataframe(nutrition_df.tail(10))
-
-    st.subheader("📈 Daily Nutrition Goals")
-    goals = {"Calories": 1424, "Protein": 142, "Fats": 47, "Carbs": 107}
-    totals = nutrition_today_df[["Calories", "Protein", "Fats", "Carbs"]].sum()
-
-    col1, col2 = st.columns(2)
-    with col1:
-        st.metric("Calories", f"{totals['Calories']:.0f} / {goals['Calories']} kcal")
-        st.progress(min(totals['Calories'] / goals["Calories"], 1.0))
-        st.metric("Protein", f"{totals['Protein']:.0f} / {goals['Protein']} g")
-        st.progress(min(totals['Protein'] / goals["Protein"], 1.0))
-    with col2:
-        st.metric("Carbs", f"{totals['Carbs']:.0f} / {goals['Carbs']} g")
-        st.progress(min(totals['Carbs'] / goals["Carbs"], 1.0))
-        st.metric("Fats", f"{totals['Fats']:.0f} / {goals['Fats']} g")
-        st.progress(min(totals['Fats'] / goals["Fats"], 1.0))
-
-    st.subheader("📋 Edit Nutrition Log")
-    nutrition_edit = st.data_editor(nutrition_df, num_rows="dynamic", use_container_width=True)
-    if st.button("Save Nutrition Log"):
-        nutrition_edit.to_csv(NUTRITION_LOG, index=False)
-        st.success("Nutrition log saved.")
+            "Calories": st.session_state["]()_
 
 
 with tab2:
