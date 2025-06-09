@@ -326,7 +326,7 @@ with tab6:
     with st.form("planner_form"):
         selected_date = st.date_input("Select Date")
         workout_name = st.text_input("Workout Name")
-        muscle_group = st.selectbox("Target Muscle Group", ["Chest", "Back", "Legs", "Arms", "Core", "Full Body"])
+        muscle_group = st.selectbox("Target Muscle Group", ["Chest", "Back", "Legs", "Arms", "shoulders", "Core", "Full Body"])
         submitted = st.form_submit_button("Add to Planner")
 
         if submitted:
