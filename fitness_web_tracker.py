@@ -149,7 +149,7 @@ with tab1:
         for key in ["meal", "protein", "carbs", "fats", "calories"]:
             st.session_state[key] = "" if key == "meal" else 0
 
-        st.experimental_rerun()
+        st.rerun()
 
     # Meal History Table
     st.subheader("Meal History")
