@@ -131,9 +131,9 @@ with tab1:
 with tab2:
     st.header("🏋️ Log Workout")
     preset_exercises = [
-        "Chest Press", "Goblet Squat", "Decline Chest Fly", "Incline Chest Fly", "Chest Fly",
-        "Tricep Pulldown", "Lat Pulldown", "Pallof Press", "Woodchopper", "Plank Hold", "bicep curl", "hammer Curl",
-        "Overhead Press", "Deadlift", "Glute Bridge", "Barbell Row", "Calf Raise", "bench press", "overhead Tricep press", "farmer March"
+        "Standing Chest Press", "Incline Chest Fly", "Chest Fly", "Decline Chest Fly", "Bench press", "Barbell curl", "Tricep Pulldown", "Bicep curl", "Hammer Curl", "Overhead Tricep press",
+        "Lat Pulldown", "Seated Overhead Press", "Barbell Row", "Lateral Raise", "Face Pulls", "Upright Row", "Barbell Seated Lat Pulldown",
+         "Pallof Press", "Woodchopper", "Plank Hold", "Farmer March", "Rope crunch", "Resisted Hip Raise, "Goblet Squat", "Deadlift", "Glute Bridge", "Calf Raise",
         ]
     exercise = st.selectbox("Exercise", preset_exercises)
     sets = st.number_input("Sets", min_value=1, value=1)
