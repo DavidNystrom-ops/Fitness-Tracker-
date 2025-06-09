@@ -4,6 +4,7 @@ import os
 from datetime import datetime
 from streamlit_calendar import calendar
 import shutil
+import altair as alt
 
 # ✅ MUST be the first Streamlit command
 st.set_page_config(page_title="Fitness Tracker", layout="centered")
