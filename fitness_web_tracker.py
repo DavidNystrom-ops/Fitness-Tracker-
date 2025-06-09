@@ -137,7 +137,7 @@ with tab1:
             "Protein": st.session_state["protein"],
             "Carbs": st.session_state["carbs"],
             "Fats": st.session_state["fats"],
-            "Calories": st.session_state["calories"]()_
+            "Calories": st.session_state["calories"]
 
 
 with tab2:
