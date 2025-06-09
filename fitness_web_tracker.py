@@ -316,41 +316,61 @@ with tab5:
 
  
 with tab6:
-    st.header("🗓️ Workout Planner")
+   from streamlit_calendar import calendar
+import streamlit as st
+import pandas as pd
+import os
+from datetime import datetime
 
-    st.markdown("Plan your future workouts by assigning routines to specific days.")
+# File path
+planner_file = os.path.join(DATA_DIR, "workout_planner.csv")
 
-    # Inputs stacked for mobile-friendliness
-    with st.container():
-        selected_date = st.date_input("📅 Select a Date", datetime.now().date())
-        muscle_group = st.text_input("💪 Muscle Group", placeholder="e.g. Push, Pull, Legs")
-        workout_plan = st.text_area("📝 Workout Plan", placeholder="e.g. Incline DB Press, Rows, Planks...")
+with st.expander("📅 Workout Planner", expanded=True):
+    st.markdown("### Plan and Visualize Your Workouts")
 
-    if st.button("Save Workout Plan"):
-        new_entry = {
-            "Date": selected_date,
-            "Muscle Group": muscle_group,
-            "Workout Plan": workout_plan
-        }
-        planner_df = pd.concat([planner_df, pd.DataFrame([new_entry])], ignore_index=True)
-        planner_df.to_csv(PLANNER_LOG, index=False)
-        st.success("✅ Workout plan saved!")
-
-    st.subheader("📅 Your Workout Plans")
-
-    if not planner_df.empty:
-        planner_df["Date"] = pd.to_datetime(planner_df["Date"]).dt.date
-        planner_df_sorted = planner_df.sort_values("Date")
-
-        for date in planner_df_sorted["Date"].drop_duplicates():
-            daily_plans = planner_df_sorted[planner_df_sorted["Date"] == date]
-            with st.expander(f"📆 {date.strftime('%A, %B %d')}"):
-                for _, row in daily_plans.iterrows():
-                    st.markdown(f"""
-                        **Muscle Group:** {row['Muscle Group']}  
-                        **Plan:** {row['Workout Plan']}
-                    """)
+    # Load planner data
+    if os.path.exists(planner_file):
+        planner_df = pd.read_csv(planner_file)
+        planner_df["Date"] = pd.to_datetime(planner_df["Date"], errors='coerce').dt.date
+        planner_df = planner_df.dropna(subset=["Date"])
     else:
-        st.info("No workouts planned yet.")
+        planner_df = pd.DataFrame(columns=["Date", "Workout", "Muscle Group"])
 
+    # --- Workout Planner Input ---
+    with st.form("planner_form"):
+        selected_date = st.date_input("Select Date")
+        workout_name = st.text_input("Workout Name")
+        muscle_group = st.selectbox("Target Muscle Group", ["Chest", "Back", "Legs", "Arms", "Core", "Full Body"])
+        submitted = st.form_submit_button("Add to Planner")
 
+        if submitted:
+            new_entry = {
+                "Date": selected_date,
+                "Workout": workout_name,
+                "Muscle Group": muscle_group
+            }
+            planner_df = planner_df._append(new_entry, ignore_index=True)
+            planner_df.to_csv(planner_file, index=False)
+            st.success("Workout added to planner!")
+
+    # --- Visual Calendar View ---
+    st.markdown("### 📆 Calendar View")
+    if not planner_df.empty:
+        calendar_events = [
+            {
+                "title": f"{row['Workout']} ({row['Muscle Group']})",
+                "start": str(row["Date"]),
+                "end": str(row["Date"]),
+            }
+            for _, row in planner_df.iterrows()
+        ]
+
+        calendar_options = {
+            "editable": False,
+            "initialView": "dayGridMonth",
+            "height": 650,
+        }
+
+        calendar(events=calendar_events, options=calendar_options)
+    else:
+        st.info("No workouts planned yet. Add some using the form above.")
