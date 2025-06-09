@@ -50,6 +50,41 @@ planner_df = load_csv(PLANNER_LOG, ["Date", "Muscle Group", "Workout Plan"])
 
 tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Nutrition", "Workout Tracker", "Water", "Sleep", "Progress", "Workout Planner"])
 
+import requests  # ensure this is imported at the top
+
+# USDA API key
+USDA_API_KEY = "cTk1ljZeYiYjWyohdwcJrB1I5tnE5IDz665YizO3"
+
+def fetch_usda_nutrition(query):
+    """Search USDA for food item and return top match's macros"""
+    search_url = "https://api.nal.usda.gov/fdc/v1/foods/search"
+    params = {
+        "query": query,
+        "pageSize": 1,
+        "api_key": USDA_API_KEY
+    }
+    res = requests.get(search_url, params=params)
+    if res.status_code != 200:
+        return None
+    
+    foods = res.json().get("foods", [])
+    if not foods:
+        return None
+
+    nutrients = {n["nutrientName"]: n["value"] for n in foods[0]["foodNutrients"]}
+
+    return {
+        "Protein": round(nutrients.get("Protein", 0)),
+        "Carbs": round(nutrients.get("Carbohydrate, by difference", 0)),
+        "Fats": round(nutrients.get("Total lipid (fat)", 0)),
+        "Calories": round(nutrients.get("Energy", 0))
+    }
+
+# Initialize session state for macros
+for key in ["protein", "carbs", "fats", "calories"]:
+    if key not in st.session_state:
+        st.session_state[key] = 0
+
 with tab1:
     st.header("🥗 Nutrition Log")
 
@@ -60,7 +95,7 @@ with tab1:
     nutrition_today_df = nutrition_df[nutrition_df["Date"].dt.normalize() == today]
     totals = nutrition_today_df[["Calories", "Protein", "Fats", "Carbs"]].sum()
 
-    # Get recent unique meals (limit to last 20)
+    # Get recent meals (limit to last 20)
     previous_meals = nutrition_df.dropna(subset=["Meal"])
     recent_entries = (
         previous_meals.sort_values("Date")
@@ -69,26 +104,27 @@ with tab1:
         .set_index("Meal")
         .to_dict(orient="index")
     )
-    meal_options = list(recent_entries.keys())[-20:]  # limit to last 20 unique meals
-
-    # Meal input with auto-suggest
+    meal_options = list(recent_entries.keys())[-20:]
     meal = st.selectbox("Meal Description (type or select)", options=[""] + meal_options, index=0, placeholder="Start typing...")
 
-    # Autofill if meal matches
-    default_protein = default_carbs = default_fats = default_calories = 0
-    for name in recent_entries:
-        if meal.lower() == name.lower():
-            defaults = recent_entries[name]
-            default_protein = int(defaults["Protein"])
-            default_carbs = int(defaults["Carbs"])
-            default_fats = int(defaults["Fats"])
-            default_calories = int(defaults["Calories"])
-            break
+    # Fetch from USDA
+    if st.button("🔍 Search Nutrition Info"):
+        if meal.strip():
+            result = fetch_usda_nutrition(meal)
+            if result:
+                st.session_state["protein"] = result["Protein"]
+                st.session_state["carbs"] = result["Carbs"]
+                st.session_state["fats"] = result["Fats"]
+                st.session_state["calories"] = result["Calories"]
+                st.toast("✅ Nutrition info loaded!", icon="🍎")
+            else:
+                st.warning("No nutrition info found. Try a different item.")
 
-    protein = st.number_input("Protein (g)", min_value=0, value=default_protein)
-    carbs = st.number_input("Carbs (g)", min_value=0, value=default_carbs)
-    fats = st.number_input("Fats (g)", min_value=0, value=default_fats)
-    calories = st.number_input("Calories", min_value=0, value=default_calories)
+    # Use USDA values, no manual override
+    protein = st.number_input("Protein (g)", min_value=0, value=st.session_state["protein"])
+    carbs = st.number_input("Carbs (g)", min_value=0, value=st.session_state["carbs"])
+    fats = st.number_input("Fats (g)", min_value=0, value=st.session_state["fats"])
+    calories = st.number_input("Calories", min_value=0, value=st.session_state["calories"])
 
     if st.button("Log Meal"):
         new_entry = {
@@ -102,6 +138,9 @@ with tab1:
         nutrition_df = pd.concat([nutrition_df, pd.DataFrame([new_entry])], ignore_index=True)
         nutrition_df.to_csv(NUTRITION_LOG, index=False)
         st.toast("✅ Meal logged!", icon="🍽️")
+        # Reset autofill after logging
+        for key in ["protein", "carbs", "fats", "calories"]:
+            st.session_state[key] = 0
         st.experimental_rerun()
 
     st.subheader("Meal History")
@@ -128,6 +167,7 @@ with tab1:
     if st.button("Save Nutrition Log"):
         nutrition_edit.to_csv(NUTRITION_LOG, index=False)
         st.success("Nutrition log saved.")
+
 
 with tab2:
     st.header("🏋️ Log Workout")
