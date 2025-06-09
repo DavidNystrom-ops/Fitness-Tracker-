@@ -6,3 +6,9 @@ gatherUsageStats = false
 
 [general]
 mainPage = "fitness_web_tracker.py"
+
+[theme]
+base="light"
+primaryColor="#0c0c0c"
+backgroundColor="#bde3ef"
+textColor="#000000"
