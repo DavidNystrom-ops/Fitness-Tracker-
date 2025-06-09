@@ -252,24 +252,67 @@ with tab4:
         sleep_edit.to_csv(SLEEP_LOG, index=False)
         st.success("Sleep log saved!")
 
+import altair as alt
+
 with tab5:
     st.header("📈 Progress")
 
-    # Ensure only the date part is used
-    workout_df["Date"] = pd.to_datetime(workout_df["Date"]).dt.date
-    nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"]).dt.date
+    # Convert dates properly
+    workout_df["Date"] = pd.to_datetime(workout_df["Date"], errors="coerce").dt.date
+    nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"], errors="coerce").dt.date
 
     if not workout_df.empty:
         st.subheader("Workout Volume by Day")
-        volume_by_day = workout_df.groupby("Date")["Volume"].sum()
-        volume_by_day.index = volume_by_day.index.astype(str)  # Convert index to string
-        st.bar_chart(volume_by_day)
+
+        volume_by_day = (
+            workout_df.groupby("Date")["Volume"]
+            .sum()
+            .reset_index()
+            .sort_values("Date")
+        )
+        volume_by_day["7-Day Avg"] = volume_by_day["Volume"].rolling(window=7, min_periods=1).mean()
+
+        volume_chart = alt.Chart(volume_by_day).transform_fold(
+            ["Volume", "7-Day Avg"],
+            as_=["Metric", "Value"]
+        ).mark_line(point=True).encode(
+            x="Date:T",
+            y="Value:Q",
+            color="Metric:N",
+            tooltip=["Date:T", "Metric:N", "Value:Q"]
+        ).properties(width="container", height=300, title="Workout Volume Trend")
+
+        st.altair_chart(volume_chart, use_container_width=True)
+
+    else:
+        st.info("No workout data available to show volume progress.")
 
     if not nutrition_df.empty:
         st.subheader("Calories by Day")
-        calories_by_day = nutrition_df.groupby("Date")["Calories"].sum()
-        calories_by_day.index = calories_by_day.index.astype(str)  # Convert index to string
-        st.bar_chart(calories_by_day)
+
+        calories_by_day = (
+            nutrition_df.groupby("Date")["Calories"]
+            .sum()
+            .reset_index()
+            .sort_values("Date")
+        )
+        calories_by_day["7-Day Avg"] = calories_by_day["Calories"].rolling(window=7, min_periods=1).mean()
+
+        calorie_chart = alt.Chart(calories_by_day).transform_fold(
+            ["Calories", "7-Day Avg"],
+            as_=["Metric", "Value"]
+        ).mark_line(point=True).encode(
+            x="Date:T",
+            y="Value:Q",
+            color="Metric:N",
+            tooltip=["Date:T", "Metric:N", "Value:Q"]
+        ).properties(width="container", height=300, title="Calorie Intake Trend")
+
+        st.altair_chart(calorie_chart, use_container_width=True)
+
+    else:
+        st.info("No nutrition data available to show calorie trends.")
+
  
 with tab6:
     st.header("🗓️ Workout Planner")
