@@ -105,7 +105,8 @@ with tab1:
         .to_dict(orient="index")
     )
     meal_options = list(recent_entries.keys())[-20:]
-    meal = st.selectbox("Meal Description (type or select)", options=[""] + meal_options, index=0, placeholder="Start typing...")
+    meal = st.text_input("Meal Description (start typing...)", value="", placeholder="e.g. Chicken Breast or Banana")
+
 
     # Fetch from USDA
     if st.button("🔍 Search Nutrition Info"):
