@@ -88,14 +88,17 @@ for key in ["protein", "carbs", "fats", "calories"]:
 with tab1:
     st.header("🥗 Nutrition Log")
 
+    # Initialize session state
+    for key in ["meal", "protein", "carbs", "fats", "calories"]:
+        if key not in st.session_state:
+            st.session_state[key] = "" if key == "meal" else 0
+
     today = pd.to_datetime(datetime.now().date())
     nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"], errors="coerce")
-
-    # Filter today's entries
     nutrition_today_df = nutrition_df[nutrition_df["Date"].dt.normalize() == today]
     totals = nutrition_today_df[["Calories", "Protein", "Fats", "Carbs"]].sum()
 
-    # Get recent meals (limit to last 20)
+    # Recent meals for USDA reference (last 20)
     previous_meals = nutrition_df.dropna(subset=["Meal"])
     recent_entries = (
         previous_meals.sort_values("Date")
@@ -104,44 +107,48 @@ with tab1:
         .set_index("Meal")
         .to_dict(orient="index")
     )
-    meal_options = list(recent_entries.keys())[-20:]
-    meal = st.text_input("Meal Description (start typing...)", value="", placeholder="e.g. Chicken Breast or Banana")
 
+    # User input for meal
+    meal = st.text_input("Meal Description", value=st.session_state["meal"], placeholder="e.g. Banana or Chicken Breast")
+    st.session_state["meal"] = meal
 
-    # Fetch from USDA
     if st.button("🔍 Search Nutrition Info"):
-        if meal.strip():
-            result = fetch_usda_nutrition(meal)
-            if result:
-                st.session_state["protein"] = result["Protein"]
-                st.session_state["carbs"] = result["Carbs"]
-                st.session_state["fats"] = result["Fats"]
-                st.session_state["calories"] = result["Calories"]
-                st.toast("✅ Nutrition info loaded!", icon="🍎")
-            else:
-                st.warning("No nutrition info found. Try a different item.")
+        result = fetch_usda_nutrition(meal)
+        if result:
+            st.session_state["protein"] = result["Protein"]
+            st.session_state["carbs"] = result["Carbs"]
+            st.session_state["fats"] = result["Fats"]
+            st.session_state["calories"] = result["Calories"]
+            st.toast("✅ Nutrition info loaded!", icon="🍎")
+        else:
+            st.warning("No nutrition info found. Try a simpler food name.")
 
-    # Use USDA values, no manual override
-    protein = st.number_input("Protein (g)", min_value=0, value=st.session_state["protein"])
-    carbs = st.number_input("Carbs (g)", min_value=0, value=st.session_state["carbs"])
-    fats = st.number_input("Fats (g)", min_value=0, value=st.session_state["fats"])
-    calories = st.number_input("Calories", min_value=0, value=st.session_state["calories"])
+    # Macro inputs (read from session)
+    st.session_state["protein"] = st.number_input("Protein (g)", min_value=0, value=st.session_state["protein"])
+    st.session_state["carbs"] = st.number_input("Carbs (g)", min_value=0, value=st.session_state["carbs"])
+    st.session_state["fats"] = st.number_input("Fats (g)", min_value=0, value=st.session_state["fats"])
+    st.session_state["calories"] = st.number_input("Calories", min_value=0, value=st.session_state["calories"])
 
     if st.button("Log Meal"):
         new_entry = {
             "Date": datetime.now(),
-            "Meal": meal,
-            "Protein": protein,
-            "Carbs": carbs,
-            "Fats": fats,
-            "Calories": calories
+            "Meal": st.session_state["meal"],
+            "Protein": st.session_state["protein"],
+            "Carbs": st.session_state["carbs"],
+            "Fats": st.session_state["fats"],
+            "Calories": st.session_state["calories"]
         }
         nutrition_df = pd.concat([nutrition_df, pd.DataFrame([new_entry])], ignore_index=True)
         nutrition_df.to_csv(NUTRITION_LOG, index=False)
         st.toast("✅ Meal logged!", icon="🍽️")
-        # Reset autofill after logging
-        for key in ["protein", "carbs", "fats", "calories"]:
-            st.session_state[key] = 0
+
+        # Reset form fields
+        st.session_state["meal"] = ""
+        st.session_state["protein"] = 0
+        st.session_state["carbs"] = 0
+        st.session_state["fats"] = 0
+        st.session_state["calories"] = 0
+
         st.experimental_rerun()
 
     st.subheader("Meal History")
