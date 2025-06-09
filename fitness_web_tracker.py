@@ -129,15 +129,15 @@ with tab1:
     st.session_state["carbs"] = st.number_input("Carbs (g)", min_value=0, value=st.session_state["carbs"])
     st.session_state["fats"] = st.number_input("Fats (g)", min_value=0, value=st.session_state["fats"])
     st.session_state["calories"] = st.number_input("Calories", min_value=0, value=st.session_state["calories"])
-
-       if st.button("Log Meal"):
-           new_entry = {
-               "Date": datetime.now(),
-               "Meal": st.session_state["meal"],
-               "Protein": st.session_state["protein"],
-               "Carbs": st.session_state["carbs"],
-               "Fats": st.session_state["fats"],
-               "Calories": st.session_state["calories"]
+   
+    if st.button("Log Meal"):
+        new_entry = {
+            "Date": datetime.now(),
+            "Meal": st.session_state["meal"],
+            "Protein": st.session_state["protein"],
+            "Carbs": st.session_state["carbs"],
+            "Fats": st.session_state["fats"],
+            "Calories": st.session_state["calories"]
         }
         nutrition_df = pd.concat([nutrition_df, pd.DataFrame([new_entry])], ignore_index=True)
         nutrition_df.to_csv(NUTRITION_LOG, index=False)
@@ -150,6 +150,7 @@ with tab1:
 
         st.experimental_rerun()
 
+       
 
 with tab2:
     st.header("🏋️ Log Workout")
