@@ -54,14 +54,13 @@ with tab1:
     st.header("🥗 Nutrition Log")
 
     today = pd.to_datetime(datetime.now().date())
-    # Convert "Date" just once
     nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"], errors="coerce")
 
     # Filter today's entries
     nutrition_today_df = nutrition_df[nutrition_df["Date"].dt.normalize() == today]
     totals = nutrition_today_df[["Calories", "Protein", "Fats", "Carbs"]].sum()
 
-    # Prepare previous meals for autofill
+    # Get recent unique meals (limit to last 20)
     previous_meals = nutrition_df.dropna(subset=["Meal"])
     recent_entries = (
         previous_meals.sort_values("Date")
@@ -70,11 +69,12 @@ with tab1:
         .set_index("Meal")
         .to_dict(orient="index")
     )
+    meal_options = list(recent_entries.keys())[-20:]  # limit to last 20 unique meals
 
-    # Input fields
-    meal = st.text_input("Meal Description")
+    # Meal input with auto-suggest
+    meal = st.selectbox("Meal Description (type or select)", options=[""] + meal_options, index=0, placeholder="Start typing...")
 
-    # Autofill macro values if meal has been logged before
+    # Autofill if meal matches
     default_protein = default_carbs = default_fats = default_calories = 0
     for name in recent_entries:
         if meal.lower() == name.lower():
@@ -101,7 +101,8 @@ with tab1:
         }
         nutrition_df = pd.concat([nutrition_df, pd.DataFrame([new_entry])], ignore_index=True)
         nutrition_df.to_csv(NUTRITION_LOG, index=False)
-        st.success("Meal logged!")
+        st.toast("✅ Meal logged!", icon="🍽️")
+        st.experimental_rerun()
 
     st.subheader("Meal History")
     st.dataframe(nutrition_df.tail(10))
