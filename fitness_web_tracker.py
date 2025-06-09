@@ -316,25 +316,11 @@ with tab5:
 
  
 with tab6:
-   from streamlit_calendar import calendar
-import streamlit as st
-import pandas as pd
-import os
-from datetime import datetime
+    st.header("📅 Workout Planner")
 
-# File path
-planner_file = os.path.join(DATA_DIR, "workout_planner.csv")
-
-with st.expander("📅 Workout Planner", expanded=True):
-    st.markdown("### Plan and Visualize Your Workouts")
-
-    # Load planner data
-    if os.path.exists(planner_file):
-        planner_df = pd.read_csv(planner_file)
-        planner_df["Date"] = pd.to_datetime(planner_df["Date"], errors='coerce').dt.date
-        planner_df = planner_df.dropna(subset=["Date"])
-    else:
-        planner_df = pd.DataFrame(columns=["Date", "Workout", "Muscle Group"])
+    # Ensure clean and safe date parsing
+    planner_df["Date"] = pd.to_datetime(planner_df["Date"], errors="coerce").dt.date
+    planner_df = planner_df.dropna(subset=["Date"])
 
     # --- Workout Planner Input ---
     with st.form("planner_form"):
@@ -346,19 +332,20 @@ with st.expander("📅 Workout Planner", expanded=True):
         if submitted:
             new_entry = {
                 "Date": selected_date,
-                "Workout": workout_name,
-                "Muscle Group": muscle_group
+                "Muscle Group": muscle_group,
+                "Workout Plan": workout_name
             }
-            planner_df = planner_df._append(new_entry, ignore_index=True)
-            planner_df.to_csv(planner_file, index=False)
+            planner_df = pd.concat([planner_df, pd.DataFrame([new_entry])], ignore_index=True)
+            planner_df.to_csv(PLANNER_LOG, index=False)
             st.success("Workout added to planner!")
+            st.rerun()
 
     # --- Visual Calendar View ---
     st.markdown("### 📆 Calendar View")
     if not planner_df.empty:
         calendar_events = [
             {
-                "title": f"{row['Workout']} ({row['Muscle Group']})",
+                "title": f"{row['Workout Plan']} ({row['Muscle Group']})",
                 "start": str(row["Date"]),
                 "end": str(row["Date"]),
             }
@@ -374,3 +361,4 @@ with st.expander("📅 Workout Planner", expanded=True):
         calendar(events=calendar_events, options=calendar_options)
     else:
         st.info("No workouts planned yet. Add some using the form above.")
+
