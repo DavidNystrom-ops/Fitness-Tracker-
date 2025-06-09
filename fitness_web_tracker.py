@@ -320,10 +320,11 @@ with tab6:
 
     st.markdown("Plan your future workouts by assigning routines to specific days.")
 
-    # Input layout (better stacked on small screens)
-    selected_date = st.date_input("Select a Date to Plan Workout", datetime.now().date())
-    muscle_group = st.text_input("Muscle Group (e.g., Push, Pull, Chest)")
-    workout_plan = st.text_area("Workout Plan (e.g., Incline DB Press, Rows, etc.)")
+    # Inputs stacked for mobile-friendliness
+    with st.container():
+        selected_date = st.date_input("📅 Select a Date", datetime.now().date())
+        muscle_group = st.text_input("💪 Muscle Group", placeholder="e.g. Push, Pull, Legs")
+        workout_plan = st.text_area("📝 Workout Plan", placeholder="e.g. Incline DB Press, Rows, Planks...")
 
     if st.button("Save Workout Plan"):
         new_entry = {
@@ -332,19 +333,23 @@ with tab6:
             "Workout Plan": workout_plan
         }
         planner_df = pd.concat([planner_df, pd.DataFrame([new_entry])], ignore_index=True)
-        planner_df.to_csv(WORKOUT_PLANNER_LOG, index=False)
-        st.success("Workout plan saved!")
+        planner_df.to_csv(PLANNER_LOG, index=False)
+        st.success("✅ Workout plan saved!")
 
     st.subheader("📅 Your Workout Plans")
 
-    # Group and show in expanders per date
     if not planner_df.empty:
+        planner_df["Date"] = pd.to_datetime(planner_df["Date"]).dt.date
         planner_df_sorted = planner_df.sort_values("Date")
+
         for date in planner_df_sorted["Date"].drop_duplicates():
             daily_plans = planner_df_sorted[planner_df_sorted["Date"] == date]
-            with st.expander(f"{date.strftime('%A, %B %d')}"):
+            with st.expander(f"📆 {date.strftime('%A, %B %d')}"):
                 for _, row in daily_plans.iterrows():
-                    st.markdown(f"**{row['Muscle Group']}**: {row['Workout Plan']}")
+                    st.markdown(f"""
+                        **Muscle Group:** {row['Muscle Group']}  
+                        **Plan:** {row['Workout Plan']}
+                    """)
     else:
         st.info("No workouts planned yet.")
 
