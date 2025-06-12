@@ -15,10 +15,16 @@ BACKUP_DIR = os.path.join(DATA_DIR, "backups")
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(BACKUP_DIR, exist_ok=True)
 
-# Backup function
+# Backup function (updated)
 def backup_csv_logs():
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    for filename in ["nutrition_log.csv", "sleep_log.csv", "water_log.csv", "workout_data.csv"]:
+    for filename in [
+        "nutrition_log.csv",
+        "sleep_log.csv",
+        "water_log.csv",
+        "workout_log.csv",
+        "planner_log.csv"  # <- newly added
+    ]:
         src = os.path.join(DATA_DIR, filename)
         if os.path.exists(src):
             dst = os.path.join(BACKUP_DIR, f"{timestamp}_{filename}")
